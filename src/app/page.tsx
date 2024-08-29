@@ -1,12 +1,10 @@
 "use client";
 import React from 'react';
 import HabitTrackerList from './components/HabitTrackerList';
-import Navbar from './components/Navbar';
 
 const Home: React.FC = () => {
   return (
     <div className="home-container">
-      <Navbar />
       <div className="content">
         <HabitTrackerList />
       </div>
@@ -14,9 +12,11 @@ const Home: React.FC = () => {
         .home-container {
           background-color: white;
           min-height: 100vh;
+          width: 100%;
         }
         .content {
-          padding-top: 80px; // Adjust this value based on your navbar height
+          padding-top: 80px;
+          width: 100%;
         }
       `}</style>
     </div>

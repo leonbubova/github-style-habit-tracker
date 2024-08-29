@@ -14,8 +14,10 @@ const Footer: React.FC = () => {
           className="footer-link"
         >
           @leonbubova
-        </Link>{" "}
-        and the help of{" "}
+        </Link>
+      </p>
+      <p>
+        with the help of{" "}
         <Link
           href="https://www.anthropic.com"
           target="_blank"
@@ -48,8 +50,6 @@ const Footer: React.FC = () => {
         }
         .footer p {
           margin: 0;
-          max-width: 600px;
-          margin: 0 auto;
           line-height: 1.5;
         }
         .footer-link {
@@ -57,18 +57,18 @@ const Footer: React.FC = () => {
           text-decoration: none;
           font-weight: 600;
           transition: color 0.2s ease;
-          white-space: nowrap;
         }
         .footer-link:hover {
           color: #2188ff;
           text-decoration: underline;
         }
         @media (max-width: 600px) {
+          .footer {
+            font-size: 12px;
+            padding: 15px 10px;
+          }
           .footer p {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 4px;
+            margin-bottom: 5px;
           }
         }
       `}</style>

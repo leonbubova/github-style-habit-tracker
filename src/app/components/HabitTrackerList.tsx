@@ -210,10 +210,11 @@ const HabitTrackerList: React.FC = () => {
           align-items: center;
           gap: 80px;
           padding: 20px;
-          min-height: calc(
-            100vh - 60px
-          ); /* Adjust this value based on your header height */
-          padding-bottom: 60px; /* Add some padding at the bottom for the footer */
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          min-height: calc(100vh - 60px);
+          padding-bottom: 60px;
         }
         @media (max-width: 768px) {
           .habit-tracker-list {
@@ -223,6 +224,7 @@ const HabitTrackerList: React.FC = () => {
         .tracker-container {
           position: relative;
           width: 100%;
+          max-width: 100%;
           transition: all 0.3s ease-out;
         }
         .tracker-container.new-habit {
