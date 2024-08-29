@@ -175,31 +175,33 @@ const HabitTrackerList: React.FC = () => {
   console.log("Rendering trackers:", trackers);
 
   return (
-    <div className="habit-tracker-list">
-      {trackers.map((tracker) => (
-        <div
-          key={tracker.id}
-          className={`tracker-container ${
-            newHabitId === tracker.id ? "new-habit" : ""
-          } ${deletingHabitId === tracker.id ? "deleting-habit" : ""}`}
-          ref={tracker.id === newHabitId ? newHabitRef : null}
-        >
-          <ContributionGraph
-            contributions={tracker.contributions}
-            onAddContribution={(duration) =>
-              handleAddContribution(tracker.id, duration)
-            }
-            title={tracker.title}
-            onTitleChange={(newTitle) =>
-              updateTrackerTitle(tracker.id, newTitle)
-            }
-            onDelete={() => deleteTracker(tracker.id)}
-          />
-        </div>
-      ))}
-      <button className="add-tracker-button" onClick={addNewTracker}>
-        + Add Habit
-      </button>
+    <>
+      <div className="habit-tracker-list">
+        {trackers.map((tracker) => (
+          <div
+            key={tracker.id}
+            className={`tracker-container ${
+              newHabitId === tracker.id ? "new-habit" : ""
+            } ${deletingHabitId === tracker.id ? "deleting-habit" : ""}`}
+            ref={tracker.id === newHabitId ? newHabitRef : null}
+          >
+            <ContributionGraph
+              contributions={tracker.contributions}
+              onAddContribution={(duration) =>
+                handleAddContribution(tracker.id, duration)
+              }
+              title={tracker.title}
+              onTitleChange={(newTitle) =>
+                updateTrackerTitle(tracker.id, newTitle)
+              }
+              onDelete={() => deleteTracker(tracker.id)}
+            />
+          </div>
+        ))}
+        <button className="add-tracker-button" onClick={addNewTracker}>
+          + Add Habit
+        </button>
+      </div>
 
       <style jsx>{`
         .habit-tracker-list {
@@ -208,6 +210,10 @@ const HabitTrackerList: React.FC = () => {
           align-items: center;
           gap: 80px;
           padding: 20px;
+          min-height: calc(
+            100vh - 60px
+          ); /* Adjust this value based on your header height */
+          padding-bottom: 60px; /* Add some padding at the bottom for the footer */
         }
         @media (max-width: 768px) {
           .habit-tracker-list {
@@ -280,7 +286,7 @@ const HabitTrackerList: React.FC = () => {
           transform: translateY(-2px);
         }
       `}</style>
-    </div>
+    </>
   );
 };
 

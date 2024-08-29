@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { useAuthState } from "react-firebase-hooks/auth";
+import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { auth } from "../../firebase";
 import BurgerMenu from "./BurgerMenu";
 
 const Navbar: React.FC = () => {
@@ -69,6 +69,7 @@ const Navbar: React.FC = () => {
           left: 0;
           right: 0;
           z-index: 1000;
+          font-family: "Arial", sans-serif;
         }
         .navbar-title {
           font-size: 1.5rem;
