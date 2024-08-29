@@ -273,6 +273,7 @@ const HabitTrackerList: React.FC = () => {
           justify-content: center;
           align-items: center;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+          z-index: 1000;
         }
         .add-tracker-button:hover {
           background-color: #2ea44f;
