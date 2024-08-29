@@ -1,14 +1,24 @@
 "use client";
 import React from "react";
+import BurgerMenu from "./BurgerMenu";
 
 const Navbar: React.FC = () => {
+  const links = [
+    { href: "#about", text: "About" },
+    { href: "#more", text: "More" },
+  ];
+
   return (
     <nav className="navbar">
       <div className="navbar-title">Habit Tracker</div>
       <div className="navbar-links">
-        <a href="#about">About</a>
-        <a href="#more">More</a>
+        {links.map((link, index) => (
+          <a key={index} href={link.href}>
+            {link.text}
+          </a>
+        ))}
       </div>
+      <BurgerMenu links={links} />
 
       <style jsx>{`
         .navbar {
@@ -23,7 +33,6 @@ const Navbar: React.FC = () => {
           left: 0;
           right: 0;
           z-index: 1000;
-          box-shadow: none; // Remove the shadow
         }
         .navbar-title {
           font-size: 1.5rem;
@@ -34,21 +43,27 @@ const Navbar: React.FC = () => {
         }
         .navbar-links {
           display: flex;
-          gap: 1.5rem; // Increase gap between links
+          gap: 1.5rem;
         }
         .navbar-links a {
           color: #24292e;
           text-decoration: none;
           transition: all 0.3s ease;
-          padding: 0.5rem 0; // Remove horizontal padding
-          border: none; // Remove border
-          border-radius: 0; // Remove border-radius
+          padding: 0.5rem 0;
+          border: none;
+          border-radius: 0;
           font-weight: 500;
         }
         .navbar-links a:hover {
           color: #40c463;
-          background-color: transparent; // Remove background color on hover
-          border-bottom: 2px solid #40c463; // Add underline effect on hover
+          background-color: transparent;
+          border-bottom: 2px solid #40c463;
+        }
+
+        @media (max-width: 768px) {
+          .navbar-links {
+            display: none;
+          }
         }
       `}</style>
     </nav>

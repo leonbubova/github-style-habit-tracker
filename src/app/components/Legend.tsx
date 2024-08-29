@@ -21,8 +21,6 @@ const Legend: React.FC<LegendProps> = ({ getColor }) => {
         .legend {
           display: flex;
           align-items: center;
-          justify-content: flex-end;
-          margin-top: 24px;
           font-size: 12px;
           color: #767676;
         }
@@ -31,6 +29,9 @@ const Legend: React.FC<LegendProps> = ({ getColor }) => {
           height: 12px;
           margin: 0 2px;
           border-radius: 2px;
+        }
+        .legend-label {
+          margin: 0 4px;
         }
       `}</style>
     </div>

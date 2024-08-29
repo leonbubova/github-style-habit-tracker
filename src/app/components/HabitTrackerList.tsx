@@ -100,12 +100,6 @@ const HabitTrackerList: React.FC = () => {
     <div className="habit-tracker-list">
       {trackers.map((tracker) => (
         <div key={tracker.id} className="tracker-container">
-          <button
-            className="delete-tracker-button"
-            onClick={() => deleteTracker(tracker.id)}
-          >
-            ×
-          </button>
           <ContributionGraph
             contributions={tracker.contributions}
             onAddContribution={(duration) =>
@@ -115,6 +109,7 @@ const HabitTrackerList: React.FC = () => {
             onTitleChange={(newTitle) =>
               updateTrackerTitle(tracker.id, newTitle)
             }
+            onDelete={() => deleteTracker(tracker.id)}
           />
         </div>
       ))}
@@ -127,37 +122,17 @@ const HabitTrackerList: React.FC = () => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 60px;
+          gap: 80px;
           padding: 20px;
+        }
+        @media (max-width: 768px) {
+          .habit-tracker-list {
+            gap: 48px;
+          }
         }
         .tracker-container {
           position: relative;
           width: 100%;
-        }
-        .delete-tracker-button {
-          position: absolute;
-          top: 24px;
-          right: 465px;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background-color: #f6f8fa;
-          color: #57606a;
-          border: none;
-          font-size: 16px;
-          line-height: 1;
-          cursor: pointer;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transition: all 0.2s ease;
-          z-index: 10;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        .delete-tracker-button:hover {
-          background-color: #f3f4f6;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .add-tracker-button {
           position: fixed;

@@ -4,6 +4,7 @@ import confetti from "canvas-confetti";
 import Legend from "./Legend";
 import ContributionButtons from "./ContributionButtons";
 import { useState } from "react";
+import MonthGrid from "./MonthGrid";
 
 // File: components/ContributionGraph.tsx
 
@@ -17,13 +18,15 @@ interface ContributionGraphProps {
   onAddContribution: (duration: string) => void;
   title: string;
   onTitleChange: (newTitle: string) => void;
+  onDelete: () => void;
 }
 
 const ContributionGraph: React.FC<ContributionGraphProps> = ({
   contributions,
   onAddContribution,
-  title = "",  // Provide a default value
+  title = "",
   onTitleChange,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
@@ -33,18 +36,18 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
   const totalWeeks = 53;
 
   const getColor = (duration: string) => {
-    if (duration === '') return "#ebedf0";
-    if (duration === '15') return "#9be9a8";
-    if (duration === '60') return "#40c463";
-    if (duration === '120+') return "#30a14e";
+    if (duration === "") return "#ebedf0";
+    if (duration === "15") return "#9be9a8";
+    if (duration === "60") return "#40c463";
+    if (duration === "120+") return "#30a14e";
     return "#ebedf0";
   };
 
   const generateDates = () => {
     const dates = [];
     const startDate = new Date(currentDate);
-    startDate.setDate(startDate.getDate() - 365); // Start from 51 weeks ago
-    startDate.setDate(startDate.getDate() - startDate.getDay()); // Adjust to start on Sunday
+    startDate.setDate(startDate.getDate() - 365);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
 
     for (let week = 0; week < totalWeeks; week++) {
       for (let day = 0; day < 7; day++) {
@@ -122,71 +125,77 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
     }
   };
 
+  const generateMonthData = () => {
+    const monthData: Array<{
+      name: string;
+      days: Array<{ date: string; duration: string }>;
+    }> = [];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+
+    for (let month = 0; month < 12; month++) {
+      const startDate = new Date(currentYear, month, 2);
+      const endDate = new Date(currentYear, month + 1, 1); // Last day of the current month
+
+      monthData[month] = {
+        name: months[month],
+        days: [],
+      };
+
+      for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateString = d.toISOString().slice(0, 10);
+        const contribution = contributions.find((c) => c.date === dateString);
+        monthData[month].days.push({
+          date: dateString,
+          duration: contribution ? contribution.duration : "",
+        });
+      }
+    }
+
+    return monthData;
+  };
+
+  const monthData = generateMonthData();
+
   return (
     <div className="contribution-graph-container">
       <div className="contribution-graph">
-        <h1
-          className={`title ${isEditing ? "editing" : ""}`}
-          onClick={handleTitleClick}
-        >
-          {isEditing ? (
-            <input
-              type="text"
-              value={tempTitle}
-              onChange={handleTitleChange}
-              onBlur={handleTitleBlur}
-              onKeyDown={handleKeyDown}
-              autoFocus
+        <div className="header">
+          <h1
+            className={`title ${isEditing ? "editing" : ""}`}
+            onClick={handleTitleClick}
+          >
+            {isEditing ? (
+              <input
+                type="text"
+                value={tempTitle}
+                onChange={handleTitleChange}
+                onBlur={handleTitleBlur}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+            ) : (
+              title
+            )}
+          </h1>
+          <button className="delete-tracker-button" onClick={onDelete}>
+            ×
+          </button>
+        </div>
+        <div className="months-row">
+          {monthData.map((month, index) => (
+            <MonthGrid
+              key={month.name}
+              month={month.name}
+              days={month.days}
+              getColor={getColor}
             />
-          ) : (
-            title
-          )}
-        </h1>
-        <div className="months">
-          {months.map(
-            (month) =>
-              monthPositions[month] !== undefined && (
-                <div
-                  key={month}
-                  className="month-label"
-                  style={{ gridColumn: monthPositions[month] + 2 }}
-                >
-                  {month}
-                </div>
-              )
-          )}
+          ))}
         </div>
-        <div className="graph-container">
-          <div className="weekdays">
-            <div className="weekday-label">Mon</div>
-            <div className="weekday-label">Wed</div>
-            <div className="weekday-label">Fri</div>
-          </div>
-          <div className="grid">
-            {allDates.map((date, index) => {
-              const dateString = date.toISOString().slice(0, 10);
-              const contribution = contributions.find(
-                (c) => c.date === dateString
-              );
-              const duration = contribution ? contribution.duration : '';
-
-              return (
-                <div
-                  key={dateString}
-                  className="day"
-                  style={{
-                    backgroundColor: getColor(duration),
-                    gridColumn: Math.floor(index / 7) + 1,
-                    gridRow: (index % 7) + 1,
-                  }}
-                  title={`${dateString}: ${duration} minutes`}
-                ></div>
-              );
-            })}
-          </div>
+        <div className="bottom-row">
+          <ContributionButtons onContribute={handleContribution} />
+          <Legend getColor={getColor} />
         </div>
-        <Legend getColor={getColor} />
-        <ContributionButtons onContribute={handleContribution} />
       </div>
 
       <style jsx>{`
@@ -194,7 +203,6 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 20px;
           position: relative;
         }
         .contribution-graph {
@@ -204,115 +212,39 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           width: 100%;
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: stretch;
         }
-        .months {
-          display: grid;
-          grid-template-columns: repeat(52, 0.6fr);
-          margin-bottom: 10px;
-          margin-left: 4px;
-        }
-        .month-label {
-          font-size: 12px;
-          color: #767676;
-          grid-row: 1;
-          text-align: left;
-        }
-        .graph-container {
+        .header {
           display: flex;
-        }
-        .weekdays {
-          display: flex;
-          flex-direction: column;
           justify-content: space-between;
-          padding-top: 15px;
-          padding-bottom: 15px;
+          align-items: center;
+          margin-bottom: 16px;
         }
-        .weekday-label {
-          font-size: 12px;
-          color: #767676;
-          text-align: right;
-          padding-right: 4px;
-          margin-right: 8px;
-          height: 15px;
-          line-height: 15px;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(53, 1fr);
-          grid-template-rows: repeat(7, 1fr);
-          gap: 3px;
-        }
-        .day {
-          width: 12px;
-          height: 12px;
-          border-radius: 2px;
-        }
-
-        .button-container {
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 40px; // Increased from 24px
-        }
-
-        .graph-button {
-          padding: 6px 12px;
-          font-size: 12px;
-          font-weight: 600;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-          background-color: #40c463;
-          color: #ffffff;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
-            Arial, sans-serif;
-        }
-
-        .graph-button:hover {
-          background-color: #2ea44f;
-        }
-
-        .graph-button:active {
-          background-color: #22863a;
-        }
-
-        .graph-button:focus {
-          outline: none;
-        }
-
         .title {
           font-size: 20px;
-          font-weight: 300; // Changed from 400 to 300 for a slimmer font
+          font-weight: 300;
           color: #57606a;
-          margin-bottom: 24px;
-          margin-left: 70px;
           cursor: pointer;
           border-radius: 6px;
           padding: 6px 12px;
           transition: all 0.2s ease;
-          align-self: flex-start;
-          width: auto;
           background-color: #f6f8fa;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          margin: 0;
         }
-
         .title:hover {
           transform: translateY(-1px);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           background-color: #f3f4f6;
         }
-
         .title.editing {
           background-color: #ffffff;
           box-shadow: 0 0 0 1px rgb(235, 237, 240), 0 2px 4px rgba(0, 0, 0, 0.1);
           border: none;
         }
-
         .title input {
           font-size: 20px;
-          font-weight: 300; // Changed from 400 to 300 for a slimmer font
+          font-weight: 300;
           color: #57606a;
           background: none;
           border: none;
@@ -320,10 +252,48 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           width: 100%;
           font-family: inherit;
         }
-
-        .title input:focus {
-          outline: none; // Remove focus outline
+        .delete-tracker-button {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background-color: #f6f8fa;
+          color: #57606a;
+          border: none;
+          font-size: 16px;
+          line-height: 1;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
+        .delete-tracker-button:hover {
+          background-color: #f3f4f6;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .months-row {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          width: 100%;
+          overflow-x: auto;
+          padding-bottom: 16px;
+        }
+        .bottom-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+          .bottom-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
       `}</style>
     </div>
   );
