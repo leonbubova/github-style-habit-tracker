@@ -169,7 +169,45 @@ const HabitTrackerList: React.FC = () => {
   };
 
   if (loading || !isLoaded) {
-    return <div>Loading...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-text">
+          Loading<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span>
+        </div>
+        <style jsx>{`
+          .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+          }
+          .loading-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 20px;
+            font-weight: 400;
+            color: #6e7781;
+            letter-spacing: 0.5px;
+          }
+          .dot {
+            opacity: 0;
+            animation: appear 1.4s infinite;
+            animation-fill-mode: both;
+          }
+          .dot:nth-child(2) {
+            animation-delay: 0.2s;
+          }
+          .dot:nth-child(3) {
+            animation-delay: 0.4s;
+          }
+          @keyframes appear {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            100% { opacity: 0; }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   console.log("Rendering trackers:", trackers);
