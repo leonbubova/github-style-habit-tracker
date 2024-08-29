@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import React, { useState, useEffect, useRef } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../firebase";
 import ContributionGraph from "./habit-tracker";
 
 interface Contribution {
@@ -20,6 +20,9 @@ const HabitTrackerList: React.FC = () => {
   const [trackers, setTrackers] = useState<Tracker[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, loading] = useAuthState(auth);
+  const [newHabitId, setNewHabitId] = useState<number | null>(null);
+  const newHabitRef = useRef<HTMLDivElement>(null);
+  const [deletingHabitId, setDeletingHabitId] = useState<number | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,7 +58,7 @@ const HabitTrackerList: React.FC = () => {
   const loadTrackersFromFirestore = async () => {
     try {
       if (user) {
-        const userDoc = doc(db, 'users', user.uid);
+        const userDoc = doc(db, "users", user.uid);
         const docSnap = await getDoc(userDoc);
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -68,7 +71,9 @@ const HabitTrackerList: React.FC = () => {
           }
         } else {
           console.log("No document found in Firestore, creating default");
-          await setDoc(userDoc, { trackers: [{ id: 1, title: "Chores", contributions: [] }] });
+          await setDoc(userDoc, {
+            trackers: [{ id: 1, title: "Chores", contributions: [] }],
+          });
           setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
         }
       }
@@ -82,7 +87,7 @@ const HabitTrackerList: React.FC = () => {
   const saveTrackersToFirestore = async (newTrackers: Tracker[]) => {
     if (user) {
       try {
-        const userDoc = doc(db, 'users', user.uid);
+        const userDoc = doc(db, "users", user.uid);
         await setDoc(userDoc, { trackers: newTrackers }, { merge: true });
         console.log("Trackers saved to Firestore");
       } catch (error) {
@@ -92,10 +97,23 @@ const HabitTrackerList: React.FC = () => {
   };
 
   const addNewTracker = async () => {
-    const newId = trackers.length > 0 ? Math.max(...trackers.map((t) => t.id)) + 1 : 1;
-    const newTrackers = [...trackers, { id: newId, title: "New Habit", contributions: [] }];
+    const newId =
+      trackers.length > 0 ? Math.max(...trackers.map((t) => t.id)) + 1 : 1;
+    const newTrackers = [
+      ...trackers,
+      { id: newId, title: "New Habit", contributions: [] },
+    ];
     setTrackers(newTrackers);
     if (user) await saveTrackersToFirestore(newTrackers);
+
+    setNewHabitId(newId);
+    setTimeout(() => {
+      newHabitRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      setTimeout(() => setNewHabitId(null), 1000); // Remove animation class after 1 second
+    }, 100);
   };
 
   const handleAddContribution = async (id: number, duration: string) => {
@@ -107,7 +125,10 @@ const HabitTrackerList: React.FC = () => {
         );
         let newDuration = duration;
 
-        if (existingContribution && existingContribution.duration === duration) {
+        if (
+          existingContribution &&
+          existingContribution.duration === duration
+        ) {
           newDuration = "";
         }
 
@@ -130,9 +151,13 @@ const HabitTrackerList: React.FC = () => {
   };
 
   const deleteTracker = async (id: number) => {
-    const newTrackers = trackers.filter((tracker) => tracker.id !== id);
-    setTrackers(newTrackers);
-    if (user) await saveTrackersToFirestore(newTrackers);
+    setDeletingHabitId(id);
+    setTimeout(async () => {
+      const newTrackers = trackers.filter((tracker) => tracker.id !== id);
+      setTrackers(newTrackers);
+      if (user) await saveTrackersToFirestore(newTrackers);
+      setDeletingHabitId(null);
+    }, 100); // Reduced from 1000ms to 200ms for a quicker fade-out
   };
 
   const updateTrackerTitle = async (id: number, newTitle: string) => {
@@ -152,7 +177,13 @@ const HabitTrackerList: React.FC = () => {
   return (
     <div className="habit-tracker-list">
       {trackers.map((tracker) => (
-        <div key={tracker.id} className="tracker-container">
+        <div
+          key={tracker.id}
+          className={`tracker-container ${
+            newHabitId === tracker.id ? "new-habit" : ""
+          } ${deletingHabitId === tracker.id ? "deleting-habit" : ""}`}
+          ref={tracker.id === newHabitId ? newHabitRef : null}
+        >
           <ContributionGraph
             contributions={tracker.contributions}
             onAddContribution={(duration) =>
@@ -186,6 +217,42 @@ const HabitTrackerList: React.FC = () => {
         .tracker-container {
           position: relative;
           width: 100%;
+          transition: all 0.3s ease-out;
+        }
+        .tracker-container.new-habit {
+          animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        .tracker-container.deleting-habit {
+          animation: quickFadeOut 0.2s ease-out forwards;
+        }
+        @keyframes shake {
+          10%,
+          90% {
+            transform: translate3d(-1px, 0, 0);
+          }
+          20%,
+          80% {
+            transform: translate3d(2px, 0, 0);
+          }
+          30%,
+          50%,
+          70% {
+            transform: translate3d(-4px, 0, 0);
+          }
+          40%,
+          60% {
+            transform: translate3d(4px, 0, 0);
+          }
+        }
+        @keyframes quickFadeOut {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.95);
+          }
         }
         .add-tracker-button {
           position: fixed;

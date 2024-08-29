@@ -29,6 +29,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
+  const [isAnimating, setIsAnimating] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentDate = new Date();
@@ -91,6 +92,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
   const monthPositions = getMonthPositions();
 
   const handleContribution = (duration: string) => {
+    setIsAnimating(true);
     confetti({
       particleCount: 100,
       spread: 70,
@@ -98,6 +100,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
       disableForReducedMotion: true,
     });
     onAddContribution(duration);
+    setTimeout(() => setIsAnimating(false), 1000); // Reset animation after 1 second
   };
 
   const handleTitleClick = () => {
@@ -164,13 +167,39 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
 
   const monthData = generateMonthData();
 
+  const getCurrentDayContribution = () => {
+    const today = new Date().toISOString().split("T")[0];
+    return contributions.find((c) => c.date === today)?.duration || "";
+  };
+
+  const currentContribution = getCurrentDayContribution();
+
+  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX / window.innerWidth;
+    const y = event.clientY / window.innerHeight;
+
+    confetti({
+      particleCount: 60,
+      spread: 40,
+      origin: { x, y },
+      colors: ['#808080', '#A9A9A9', '#C0C0C0', '#D3D3D3'],
+      ticks: 150,
+      scalar: 0.6,
+      disableForReducedMotion: true,
+    });
+
+    onDelete();
+  };
+
   return (
     <div className="contribution-graph-container">
       <div className="contribution-graph">
-        <div className="header">
-          <h1
-            className={`title ${isEditing ? "editing" : ""}`}
-            onClick={handleTitleClick}
+        <div className={`header ${isAnimating ? "animating" : ""}`}>
+          <div
+            className={`title-container ${
+              currentContribution ? "completed" : ""
+            }`}
           >
             {isEditing ? (
               <input
@@ -180,12 +209,22 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
                 onChange={handleTitleChange}
                 onBlur={handleTitleBlur}
                 onKeyDown={handleKeyDown}
+                className="title-input"
               />
             ) : (
-              title
+              <h1 className="title" onClick={handleTitleClick}>
+                {title}
+              </h1>
             )}
-          </h1>
-          <button className="delete-tracker-button" onClick={onDelete}>
+            {currentContribution && (
+              <div className="checkmark-container">
+                <svg className="checkmark" viewBox="0 0 24 24">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+              </div>
+            )}
+          </div>
+          <button className="delete-tracker-button" onClick={handleDelete}>
             ×
           </button>
         </div>
@@ -200,7 +239,10 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           ))}
         </div>
         <div className="bottom-row">
-          <ContributionButtons onContribute={handleContribution} />
+          <ContributionButtons
+            onContribute={handleContribution}
+            currentContribution={getCurrentDayContribution()}
+          />
           <Legend getColor={getColor} />
         </div>
       </div>
@@ -227,37 +269,57 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           align-items: center;
           margin-bottom: 16px;
         }
-        .title {
-          font-size: 20px;
-          font-weight: 300;
-          color: #57606a;
-          cursor: pointer;
+        .header.animating {
+          animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        .title-container {
+          display: inline-flex;
+          align-items: center;
+          background-color: #f6f8fa;
           border-radius: 6px;
           padding: 6px 12px;
-          transition: all 0.2s ease;
-          background-color: #f6f8fa;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-          margin: 0;
+          transition: background-color 0.3s ease;
         }
-        .title:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          background-color: #f3f4f6;
+        .title-container.completed {
+          background-color: #e6ffed;
         }
-        .title.editing {
-          background-color: #ffffff;
-          box-shadow: 0 0 0 1px rgb(235, 237, 240), 0 2px 4px rgba(0, 0, 0, 0.1);
-          border: none;
-        }
-        .title input {
+        .title,
+        .title-input {
           font-size: 20px;
           font-weight: 300;
-          color: #57606a;
-          background: none;
+          color: #24292e;
+          margin: 0;
+          padding: 0;
           border: none;
-          outline: none;
+          background: transparent;
           width: 100%;
+        }
+        .title {
+          cursor: pointer;
+        }
+        .title-input {
+          outline: none;
           font-family: inherit;
+          padding: 6px 0;
+          margin: -6px 0;
+          border-radius: 6px 0 0 6px;
+        }
+        .checkmark-container {
+          width: 24px;
+          height: 24px;
+          background-color: #40c463;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-left: 12px;
+          flex-shrink: 0;
+          animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .checkmark {
+          width: 16px;
+          height: 16px;
+          fill: white;
         }
         .delete-tracker-button {
           width: 24px;
@@ -274,11 +336,43 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           align-items: center;
           transition: all 0.2s ease;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          margin-left: 12px;
+          z-index: 10; /* Ensure the button is above the confetti */
         }
         .delete-tracker-button:hover {
           background-color: #f3f4f6;
           transform: translateY(-1px);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        @keyframes popIn {
+          0% {
+            transform: scale(0);
+          }
+          80% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        @keyframes shake {
+          10%,
+          90% {
+            transform: translate3d(-1px, 0, 0);
+          }
+          20%,
+          80% {
+            transform: translate3d(2px, 0, 0);
+          }
+          30%,
+          50%,
+          70% {
+            transform: translate3d(-4px, 0, 0);
+          }
+          40%,
+          60% {
+            transform: translate3d(4px, 0, 0);
+          }
         }
         .months-row {
           display: flex;
@@ -301,6 +395,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
             align-items: flex-start;
             gap: 16px;
           }
+        }
       `}</style>
     </div>
   );

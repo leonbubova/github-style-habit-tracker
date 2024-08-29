@@ -2,22 +2,26 @@ import React from "react";
 
 interface ContributionButtonsProps {
   onContribute: (duration: string) => void;
+  currentContribution: string;
 }
 
 const ContributionButtons: React.FC<ContributionButtonsProps> = ({
   onContribute,
+  currentContribution,
 }) => {
+  const durations = ["15", "60", "120+"];
+
   return (
     <div className="button-container">
-      <button className="graph-button" onClick={() => onContribute("15")}>
-        15 minutes
-      </button>
-      <button className="graph-button" onClick={() => onContribute("60")}>
-        1 hour
-      </button>
-      <button className="graph-button" onClick={() => onContribute("120+")}>
-        2+ hours
-      </button>
+      {durations.map((duration) => (
+        <button
+          key={duration}
+          className={`graph-button ${currentContribution === duration ? 'active' : ''}`}
+          onClick={() => onContribute(duration)}
+        >
+          {duration === "120+" ? "2+ hours" : `${duration} minutes`}
+        </button>
+      ))}
 
       <style jsx>{`
         .button-container {
@@ -40,6 +44,11 @@ const ContributionButtons: React.FC<ContributionButtonsProps> = ({
         }
 
         .graph-button:hover {
+          background-color: #40c463;
+          color: #ffffff;
+        }
+
+        .graph-button.active {
           background-color: #40c463;
           color: #ffffff;
         }
