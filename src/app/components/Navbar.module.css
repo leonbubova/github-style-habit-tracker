@@ -1,0 +1,49 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #ffffff;
+  color: #24292e;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.navbarTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(45deg, #40c463, #216e39);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbarLinks {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navbarLink {
+  color: #24292e;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  padding: 0.5rem 0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.navbarLink:hover {
+  color: #40c463;
+  border-bottom: 2px solid #40c463;
+}
+
+@media (max-width: 768px) {
+  .navbarLinks {
+    display: none;
+  }
+}
