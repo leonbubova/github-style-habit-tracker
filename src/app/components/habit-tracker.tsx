@@ -15,13 +15,16 @@ interface Contribution {
 interface ContributionGraphProps {
   contributions: Contribution[];
   onAddContribution: (duration: string) => void;
+  title: string;
+  onTitleChange: (newTitle: string) => void;
 }
 
 const ContributionGraph: React.FC<ContributionGraphProps> = ({
   contributions,
   onAddContribution,
+  title = "",  // Provide a default value
+  onTitleChange,
 }) => {
-  const [title, setTitle] = useState("Chores");
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
 
@@ -105,7 +108,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
 
   const handleTitleBlur = () => {
     if (tempTitle.trim() !== "") {
-      setTitle(tempTitle);
+      onTitleChange(tempTitle);
     }
     setIsEditing(false);
   };
@@ -113,7 +116,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       if (tempTitle.trim() !== "") {
-        setTitle(tempTitle);
+        onTitleChange(tempTitle);
       }
       setIsEditing(false);
     }

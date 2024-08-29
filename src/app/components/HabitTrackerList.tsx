@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ContributionGraph from "./habit-tracker";
 
 interface Contribution {
@@ -9,17 +9,40 @@ interface Contribution {
 
 interface Tracker {
   id: number;
+  title: string;
   contributions: Contribution[];
 }
 
 const HabitTrackerList: React.FC = () => {
-  const [trackers, setTrackers] = useState<Tracker[]>([
-    { id: 1, contributions: [] },
-  ]);
+  const [trackers, setTrackers] = useState<Tracker[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Load trackers from localStorage on component mount
+    const savedTrackers = localStorage.getItem("habitTrackers");
+    if (savedTrackers) {
+      setTrackers(JSON.parse(savedTrackers));
+    } else {
+      // If no saved trackers, initialize with one empty tracker
+      setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    // Save trackers to localStorage whenever they change
+    if (isLoaded) {
+      localStorage.setItem("habitTrackers", JSON.stringify(trackers));
+    }
+  }, [trackers, isLoaded]);
 
   const addNewTracker = () => {
-    const newId = trackers.length + 1;
-    setTrackers([...trackers, { id: newId, contributions: [] }]);
+    const newId =
+      trackers.length > 0 ? Math.max(...trackers.map((t) => t.id)) + 1 : 1;
+    setTrackers([
+      ...trackers,
+      { id: newId, title: "New Habit", contributions: [] },
+    ]);
   };
 
   const handleAddContribution = (id: number, duration: string) => {
@@ -61,6 +84,18 @@ const HabitTrackerList: React.FC = () => {
     setTrackers(trackers.filter((tracker) => tracker.id !== id));
   };
 
+  const updateTrackerTitle = (id: number, newTitle: string) => {
+    setTrackers(
+      trackers.map((tracker) =>
+        tracker.id === id ? { ...tracker, title: newTitle } : tracker
+      )
+    );
+  };
+
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="habit-tracker-list">
       {trackers.map((tracker) => (
@@ -75,6 +110,10 @@ const HabitTrackerList: React.FC = () => {
             contributions={tracker.contributions}
             onAddContribution={(duration) =>
               handleAddContribution(tracker.id, duration)
+            }
+            title={tracker.title}
+            onTitleChange={(newTitle) =>
+              updateTrackerTitle(tracker.id, newTitle)
             }
           />
         </div>
