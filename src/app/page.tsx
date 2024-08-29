@@ -1,40 +1,26 @@
-'use client';
-import dynamic from 'next/dynamic';
-import { useState } from 'react';
+"use client";
+import React from 'react';
+import HabitTrackerList from './components/HabitTrackerList';
+import Navbar from './components/Navbar';
 
-const GitHubContributionGraph = dynamic(
-  () => import('./components/habit-tracker'),
-  { ssr: false }
-);
-
-export default function Home() {
-  const [contributions, setContributions] = useState<Contribution[]>([]);
-
-  const handleAddContribution = (duration: string) => {
-    const today = new Date().toISOString().slice(0, 10);
-    const newContributions = contributions.filter(c => c.date !== today);
-    
-    newContributions.push({ date: today, count: getDurationValue(duration) });
-
-    setContributions(newContributions);
-  };
-
-  const getDurationValue = (duration: string): number => {
-    switch (duration) {
-      case '15min': return 1;
-      case '1hour': return 4;
-      case '2hours+': return 8;
-      default: return 0;
-    }
-  };
-
+const Home: React.FC = () => {
   return (
-    <div>
-      <h1>GitHub-style Habit Tracker</h1>
-      <GitHubContributionGraph 
-        contributions={contributions}
-        onAddContribution={handleAddContribution}
-      />
+    <div className="home-container">
+      <Navbar />
+      <div className="content">
+        <HabitTrackerList />
+      </div>
+      <style jsx>{`
+        .home-container {
+          background-color: white;
+          min-height: 100vh;
+        }
+        .content {
+          padding-top: 80px; // Adjust this value based on your navbar height
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default Home;
