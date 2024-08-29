@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase";
@@ -24,38 +24,7 @@ const HabitTrackerList: React.FC = () => {
   const newHabitRef = useRef<HTMLDivElement>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (user) {
-        console.log("User is logged in, loading from Firestore");
-        await loadTrackersFromFirestore();
-      } else if (!loading) {
-        console.log("User is not logged in, loading from localStorage");
-        loadTrackersFromLocalStorage();
-      }
-    };
-
-    loadData();
-  }, [user, loading]);
-
-  useEffect(() => {
-    if (isLoaded && !user) {
-      console.log("Saving trackers to localStorage:", trackers);
-      localStorage.setItem("habitTrackers", JSON.stringify(trackers));
-    }
-  }, [trackers, isLoaded, user]);
-
-  const loadTrackersFromLocalStorage = () => {
-    const savedTrackers = localStorage.getItem("habitTrackers");
-    if (savedTrackers) {
-      setTrackers(JSON.parse(savedTrackers));
-    } else {
-      setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
-    }
-    setIsLoaded(true);
-  };
-
-  const loadTrackersFromFirestore = async () => {
+  const loadTrackersFromFirestore = useCallback(async () => {
     try {
       if (user) {
         const userDoc = doc(db, "users", user.uid);
@@ -79,6 +48,37 @@ const HabitTrackerList: React.FC = () => {
       }
     } catch (error) {
       console.error("Error loading trackers from Firestore:", error);
+      setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
+    }
+    setIsLoaded(true);
+  }, [user]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (user) {
+        console.log("User is logged in, loading from Firestore");
+        await loadTrackersFromFirestore();
+      } else if (!loading) {
+        console.log("User is not logged in, loading from localStorage");
+        loadTrackersFromLocalStorage();
+      }
+    };
+
+    loadData();
+  }, [user, loading, loadTrackersFromFirestore]);
+
+  useEffect(() => {
+    if (isLoaded && !user) {
+      console.log("Saving trackers to localStorage:", trackers);
+      localStorage.setItem("habitTrackers", JSON.stringify(trackers));
+    }
+  }, [trackers, isLoaded, user]);
+
+  const loadTrackersFromLocalStorage = () => {
+    const savedTrackers = localStorage.getItem("habitTrackers");
+    if (savedTrackers) {
+      setTrackers(JSON.parse(savedTrackers));
+    } else {
       setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
     }
     setIsLoaded(true);

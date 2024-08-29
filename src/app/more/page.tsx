@@ -12,9 +12,9 @@ const MorePage: React.FC = () => {
       <section className="more-section">
         <h2>👨‍💻 About the Developer</h2>
         <p>
-          Hi there! I'm a passionate developer who loves creating useful and
+          Hi there! I&apos;m a passionate developer who loves creating useful and
           innovative applications. With a keen interest in web technologies and
-          AI, I'm always looking for ways to combine cutting-edge tech with
+          AI, I&apos;m always looking for ways to combine cutting-edge tech with
           practical solutions.
         </p>
       </section>
@@ -40,7 +40,7 @@ const MorePage: React.FC = () => {
             >
               Personal Website
             </a>
-            <p>Leon's portfolio and personal web presence</p>
+            <p>Leon&apos;s portfolio and personal web presence</p>
           </li>
           <li>
             <a

@@ -13,7 +13,9 @@ const AboutPage: React.FC = () => {
       <section className="about-section">
         <h2>🚀 How to Rocket-Boost Your Habits</h2>
         <ol>
-          <li>Spawn a new habit by smashing that "Add Habit" button.</li>
+          <li>
+            Spawn a new habit by smashing that &quot;Add Habit&quot; button.
+          </li>
           <li>
             Paint your progress with the magical color buttons below the graph.
           </li>
@@ -23,7 +25,8 @@ const AboutPage: React.FC = () => {
           </li>
           <li>Feeling creative? Rename your habit with a simple click.</li>
           <li>
-            Made a mistake? Banish unwanted habits with the mighty "x" of doom.
+            Made a mistake? Banish unwanted habits with the mighty &quot;x&quot;
+            of doom.
           </li>
           <li>
             Save all your progress by logging in with your Google Account.
@@ -166,7 +169,7 @@ const AboutPage: React.FC = () => {
           box-shadow: 0 6px 8px rgba(46, 164, 79, 0.3);
         }
         .back-link::before {
-          content: '🏠';
+          content: "🏠";
           margin-right: 8px;
           transition: transform 0.3s ease;
         }
@@ -174,7 +177,7 @@ const AboutPage: React.FC = () => {
           transform: rotate(20deg);
         }
         .back-link::after {
-          content: '';
+          content: "";
           position: absolute;
           bottom: 0;
           left: 0;
