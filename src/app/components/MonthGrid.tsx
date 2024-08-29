@@ -53,7 +53,7 @@ const MonthGrid: React.FC<MonthGridProps> = ({ month, days, getColor }) => {
         .month-grid {
           padding: 0;
           width: calc(100% / 12 - 4px); // Distribute evenly across 12 months
-          min-width: 60px; // Adjust this value as needed
+          min-width: 75px; // Adjust this value as needed
         }
         .month-label {
           font-size: 10px;

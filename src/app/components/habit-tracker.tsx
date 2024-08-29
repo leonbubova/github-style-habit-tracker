@@ -1,9 +1,8 @@
 "use client";
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import confetti from "canvas-confetti";
 import Legend from "./Legend";
 import ContributionButtons from "./ContributionButtons";
-import { useState } from "react";
 import MonthGrid from "./MonthGrid";
 
 // File: components/ContributionGraph.tsx
@@ -30,6 +29,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -105,6 +105,13 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
     setTempTitle(title);
   };
 
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTempTitle(e.target.value);
   };
@@ -167,12 +174,12 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
           >
             {isEditing ? (
               <input
+                ref={inputRef}
                 type="text"
                 value={tempTitle}
                 onChange={handleTitleChange}
                 onBlur={handleTitleBlur}
                 onKeyDown={handleKeyDown}
-                autoFocus
               />
             ) : (
               title
