@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+interface Link {
+  href: string;
+  text: string;
+  onClick?: () => void;
+}
+
 interface BurgerMenuProps {
-  links: { href: string; text: string }[];
+  links: Link[];
 }
 
 const BurgerMenu: React.FC<BurgerMenuProps> = ({ links }) => {
@@ -31,7 +37,17 @@ const BurgerMenu: React.FC<BurgerMenuProps> = ({ links }) => {
       {isOpen && (
         <div className="menu-items">
           {links.map((link, index) => (
-            <a key={index} href={link.href} onClick={toggleMenu}>
+            <a
+              key={index}
+              href={link.href}
+              onClick={(e) => {
+                if (link.onClick) {
+                  e.preventDefault();
+                  link.onClick();
+                }
+                toggleMenu();
+              }}
+            >
               {link.text}
             </a>
           ))}
