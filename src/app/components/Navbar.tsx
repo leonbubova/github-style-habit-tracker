@@ -1,12 +1,34 @@
 "use client";
 import React from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { auth } from "../../firebase";
 import BurgerMenu from "./BurgerMenu";
 
 const Navbar: React.FC = () => {
+  const [user, loading] = useAuthState(auth);
+
   const links = [
     { href: "#about", text: "About" },
     { href: "#more", text: "More" },
   ];
+
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out", error);
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -17,6 +39,12 @@ const Navbar: React.FC = () => {
             {link.text}
           </a>
         ))}
+        {!loading &&
+          (user ? (
+            <button onClick={handleLogout}>Logout</button>
+          ) : (
+            <button onClick={handleLogin}>Login</button>
+          ))}
       </div>
       <BurgerMenu links={links} />
 
@@ -58,6 +86,18 @@ const Navbar: React.FC = () => {
           color: #40c463;
           background-color: transparent;
           border-bottom: 2px solid #40c463;
+        }
+        .navbar-links button {
+          background: none;
+          border: none;
+          color: #24292e;
+          cursor: pointer;
+          font-size: 14px;
+          padding: 0.5rem 0;
+          transition: all 0.3s ease;
+        }
+        .navbar-links button:hover {
+          color: #40c463;
         }
 
         @media (max-width: 768px) {

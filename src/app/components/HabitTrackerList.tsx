@@ -1,5 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
 import ContributionGraph from "./habit-tracker";
 
 interface Contribution {
@@ -16,85 +19,135 @@ interface Tracker {
 const HabitTrackerList: React.FC = () => {
   const [trackers, setTrackers] = useState<Tracker[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [user, loading] = useAuthState(auth);
 
   useEffect(() => {
-    // Load trackers from localStorage on component mount
+    const loadData = async () => {
+      if (user) {
+        console.log("User is logged in, loading from Firestore");
+        await loadTrackersFromFirestore();
+      } else if (!loading) {
+        console.log("User is not logged in, loading from localStorage");
+        loadTrackersFromLocalStorage();
+      }
+    };
+
+    loadData();
+  }, [user, loading]);
+
+  useEffect(() => {
+    if (isLoaded && !user) {
+      console.log("Saving trackers to localStorage:", trackers);
+      localStorage.setItem("habitTrackers", JSON.stringify(trackers));
+    }
+  }, [trackers, isLoaded, user]);
+
+  const loadTrackersFromLocalStorage = () => {
     const savedTrackers = localStorage.getItem("habitTrackers");
     if (savedTrackers) {
       setTrackers(JSON.parse(savedTrackers));
     } else {
-      // If no saved trackers, initialize with one empty tracker
       setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
     }
     setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    // Save trackers to localStorage whenever they change
-    if (isLoaded) {
-      localStorage.setItem("habitTrackers", JSON.stringify(trackers));
-    }
-  }, [trackers, isLoaded]);
-
-  const addNewTracker = () => {
-    const newId =
-      trackers.length > 0 ? Math.max(...trackers.map((t) => t.id)) + 1 : 1;
-    setTrackers([
-      ...trackers,
-      { id: newId, title: "New Habit", contributions: [] },
-    ]);
   };
 
-  const handleAddContribution = (id: number, duration: string) => {
-    const today = new Date().toISOString().split("T")[0];
-    setTrackers(
-      trackers.map((tracker) => {
-        if (tracker.id === id) {
-          const existingContribution = tracker.contributions.find(
-            (c) => c.date === today
-          );
-          let newDuration = duration;
-
-          if (
-            existingContribution &&
-            existingContribution.duration === duration
-          ) {
-            // If clicking the same duration, remove the contribution
-            newDuration = "";
+  const loadTrackersFromFirestore = async () => {
+    try {
+      if (user) {
+        const userDoc = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userDoc);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          console.log("Firestore data:", data);
+          if (data && data.trackers) {
+            setTrackers(data.trackers);
+          } else {
+            console.log("No trackers found in Firestore, setting default");
+            setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
           }
-
-          const updatedContributions = tracker.contributions.filter(
-            (c) => c.date !== today
-          );
-          if (newDuration) {
-            updatedContributions.push({ date: today, duration: newDuration });
-          }
-
-          return {
-            ...tracker,
-            contributions: updatedContributions,
-          };
+        } else {
+          console.log("No document found in Firestore, creating default");
+          await setDoc(userDoc, { trackers: [{ id: 1, title: "Chores", contributions: [] }] });
+          setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
         }
-        return tracker;
-      })
+      }
+    } catch (error) {
+      console.error("Error loading trackers from Firestore:", error);
+      setTrackers([{ id: 1, title: "Chores", contributions: [] }]);
+    }
+    setIsLoaded(true);
+  };
+
+  const saveTrackersToFirestore = async (newTrackers: Tracker[]) => {
+    if (user) {
+      try {
+        const userDoc = doc(db, 'users', user.uid);
+        await setDoc(userDoc, { trackers: newTrackers }, { merge: true });
+        console.log("Trackers saved to Firestore");
+      } catch (error) {
+        console.error("Error saving trackers to Firestore:", error);
+      }
+    }
+  };
+
+  const addNewTracker = async () => {
+    const newId = trackers.length > 0 ? Math.max(...trackers.map((t) => t.id)) + 1 : 1;
+    const newTrackers = [...trackers, { id: newId, title: "New Habit", contributions: [] }];
+    setTrackers(newTrackers);
+    if (user) await saveTrackersToFirestore(newTrackers);
+  };
+
+  const handleAddContribution = async (id: number, duration: string) => {
+    const today = new Date().toISOString().split("T")[0];
+    const newTrackers = trackers.map((tracker) => {
+      if (tracker.id === id) {
+        const existingContribution = tracker.contributions.find(
+          (c) => c.date === today
+        );
+        let newDuration = duration;
+
+        if (existingContribution && existingContribution.duration === duration) {
+          newDuration = "";
+        }
+
+        const updatedContributions = tracker.contributions.filter(
+          (c) => c.date !== today
+        );
+        if (newDuration) {
+          updatedContributions.push({ date: today, duration: newDuration });
+        }
+
+        return {
+          ...tracker,
+          contributions: updatedContributions,
+        };
+      }
+      return tracker;
+    });
+    setTrackers(newTrackers);
+    if (user) await saveTrackersToFirestore(newTrackers);
+  };
+
+  const deleteTracker = async (id: number) => {
+    const newTrackers = trackers.filter((tracker) => tracker.id !== id);
+    setTrackers(newTrackers);
+    if (user) await saveTrackersToFirestore(newTrackers);
+  };
+
+  const updateTrackerTitle = async (id: number, newTitle: string) => {
+    const newTrackers = trackers.map((tracker) =>
+      tracker.id === id ? { ...tracker, title: newTitle } : tracker
     );
+    setTrackers(newTrackers);
+    if (user) await saveTrackersToFirestore(newTrackers);
   };
 
-  const deleteTracker = (id: number) => {
-    setTrackers(trackers.filter((tracker) => tracker.id !== id));
-  };
-
-  const updateTrackerTitle = (id: number, newTitle: string) => {
-    setTrackers(
-      trackers.map((tracker) =>
-        tracker.id === id ? { ...tracker, title: newTitle } : tracker
-      )
-    );
-  };
-
-  if (!isLoaded) {
+  if (loading || !isLoaded) {
     return <div>Loading...</div>;
   }
+
+  console.log("Rendering trackers:", trackers);
 
   return (
     <div className="habit-tracker-list">
